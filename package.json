@@ -1,5 +1,5 @@
 {
-  "name": "reports-template",
+  "name": "reports-generator",
   "type": "module",
   "version": "0.1.0",
   "private": false,
