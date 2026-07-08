@@ -1,0 +1,52 @@
+{
+  "domain": "example.com",
+  "title": "AI Search & SEO Audit",
+  "generatedAt": "2026-07-08",
+  "score": 78,
+  "summary": "A solid technical foundation, with the biggest wins available in AI-search readiness and structured data.",
+  "sections": [
+    {
+      "title": "AI Search Readiness",
+      "score": 71,
+      "findings": [
+        "No llms.txt found, so AI assistants have no curated entry point to your best content.",
+        "Core content renders server-side, so crawlers can read it without running JavaScript.",
+        "Author bylines are missing on 6 of 9 key pages, which weakens citability."
+      ]
+    },
+    {
+      "title": "Technical SEO",
+      "score": 88,
+      "findings": [
+        "Clean, crawlable HTML with a valid sitemap.xml and robots.txt.",
+        "Core Web Vitals pass on mobile and desktop.",
+        "Two pages return soft 404s and should be fixed or redirected."
+      ]
+    },
+    {
+      "title": "Content & E-E-A-T",
+      "score": 74,
+      "findings": [
+        "Topic coverage is strong, but few pages cite sources or named data.",
+        "No visible last-updated dates, which AI engines read as a freshness signal.",
+        "Adding first-hand experience and named authors would lift trust signals."
+      ]
+    },
+    {
+      "title": "Structured Data",
+      "score": 80,
+      "findings": [
+        "Organization and WebSite schema are present and valid.",
+        "Article and FAQ schema are missing on pages that would benefit from them.",
+        "No Product or LocalBusiness markup where it applies."
+      ]
+    }
+  ],
+  "actions": [
+    "Publish an llms.txt that points AI assistants at your best pages.",
+    "Add named author bylines and visible last-updated dates to key pages.",
+    "Add Article and FAQ schema where the content supports it.",
+    "Fix the two soft 404s.",
+    "Cite named data and sources to improve citability."
+  ]
+}

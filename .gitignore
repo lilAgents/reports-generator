@@ -1,0 +1,18 @@
+# build output
+dist/
+
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# netlify
+.netlify/
+
+# env
+.env
+.env.production
+
+# os
+.DS_Store

@@ -1,0 +1,245 @@
+---
+// Renders a single interactive audit report from a plain data object.
+// Interactive bits: collapsible section findings (native details), an animated
+// score ring, and a light/dark toggle. No PDFs, no client-side framework.
+const { report } = Astro.props;
+
+const scoreColor = (s) => (s >= 80 ? '#16a34a' : s >= 60 ? '#d97706' : '#dc2626');
+
+// Overall score ring geometry.
+const R = 54;
+const CIRC = 2 * Math.PI * R;
+const dash = (Math.max(0, Math.min(100, report.score)) / 100) * CIRC;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{report.domain} · {report.title}</title>
+    <style>
+      :root {
+        --bg: #f6f7f9;
+        --surface: #ffffff;
+        --text: #1a1a1d;
+        --muted: #5b616e;
+        --border: #e6e8ec;
+        --accent: #536ee5;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          --bg: #16171b;
+          --surface: #1f2126;
+          --text: #f3f4f6;
+          --muted: #9aa1ad;
+          --border: #2c2f36;
+          --accent: #8ea2f2;
+        }
+      }
+      :root[data-theme='dark'] {
+        --bg: #16171b;
+        --surface: #1f2126;
+        --text: #f3f4f6;
+        --muted: #9aa1ad;
+        --border: #2c2f36;
+        --accent: #8ea2f2;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+      }
+      .brand { font-weight: 800; letter-spacing: -0.02em; }
+      .brand span { color: var(--accent); }
+      .toggle {
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        border-radius: 8px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .toggle:hover { color: var(--text); border-color: var(--accent); }
+      .wrap { max-width: 820px; margin: 0 auto; padding: 32px 24px 64px; }
+      .head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: center;
+        padding: 28px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+      }
+      .ring { flex-shrink: 0; }
+      .ring circle { transition: stroke-dashoffset 1s ease; }
+      .head-text h1 { margin: 0 0 4px; font-size: 26px; letter-spacing: -0.02em; }
+      .head-text .meta { color: var(--muted); font-size: 14px; margin: 0 0 10px; }
+      .head-text p { margin: 0; color: var(--text); }
+      .section-grid { margin-top: 28px; display: grid; gap: 14px; }
+      details.card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      details.card > summary {
+        list-style: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 20px;
+        font-weight: 600;
+      }
+      details.card > summary::-webkit-details-marker { display: none; }
+      .badge {
+        margin-left: auto;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        color: #fff;
+      }
+      .chev { transition: transform 0.2s ease; color: var(--muted); }
+      details[open] .chev { transform: rotate(90deg); }
+      .findings { margin: 0; padding: 0 20px 18px 20px; }
+      .findings li {
+        list-style: none;
+        display: flex;
+        gap: 10px;
+        padding: 8px 0;
+        border-top: 1px solid var(--border);
+        color: var(--text);
+      }
+      .findings li::before { content: '›'; color: var(--accent); font-weight: 700; }
+      .actions {
+        margin-top: 28px;
+        padding: 24px 28px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+      }
+      .actions h2 { margin: 0 0 14px; font-size: 18px; }
+      .actions ol { margin: 0; padding-left: 20px; }
+      .actions li { padding: 5px 0; }
+      footer {
+        max-width: 820px;
+        margin: 0 auto;
+        padding: 0 24px 40px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      footer a { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="brand">Reports<span>.</span></div>
+      <button class="toggle" id="theme-toggle" type="button" aria-label="Toggle theme">Theme</button>
+    </div>
+
+    <main class="wrap">
+      <section class="head">
+        <svg class="ring" width="132" height="132" viewBox="0 0 132 132" aria-hidden="true">
+          <circle cx="66" cy="66" r={R} fill="none" stroke="var(--border)" stroke-width="12" />
+          <circle
+            cx="66"
+            cy="66"
+            r={R}
+            fill="none"
+            stroke={scoreColor(report.score)}
+            stroke-width="12"
+            stroke-linecap="round"
+            stroke-dasharray={CIRC}
+            stroke-dashoffset={CIRC}
+            transform="rotate(-90 66 66)"
+            data-dash={CIRC - dash}
+          />
+          <text x="66" y="62" text-anchor="middle" font-size="30" font-weight="800" fill="var(--text)">{report.score}</text>
+          <text x="66" y="84" text-anchor="middle" font-size="12" fill="var(--muted)">/ 100</text>
+        </svg>
+        <div class="head-text">
+          <h1>{report.domain}</h1>
+          <p class="meta">{report.title} · {report.generatedAt}</p>
+          <p>{report.summary}</p>
+        </div>
+      </section>
+
+      <div class="section-grid">
+        {
+          report.sections.map((s) => (
+            <details class="card">
+              <summary>
+                <span class="chev">›</span>
+                {s.title}
+                <span class="badge" style={`background:${scoreColor(s.score)}`}>{s.score}</span>
+              </summary>
+              <ul class="findings">
+                {s.findings.map((f) => (
+                  <li>{f}</li>
+                ))}
+              </ul>
+            </details>
+          ))
+        }
+      </div>
+
+      {
+        report.actions && report.actions.length > 0 && (
+          <section class="actions">
+            <h2>Action plan</h2>
+            <ol>
+              {report.actions.map((a) => (
+                <li>{a}</li>
+              ))}
+            </ol>
+          </section>
+        )
+      }
+    </main>
+
+    <footer>
+      Generated with the open-source <a href="https://github.com/lilAgents/reports-template">Reports template</a>. No PDFs, just a link.
+    </footer>
+
+    <script is:inline>
+      // Theme toggle: system by default, remembers a manual override.
+      (function () {
+        const root = document.documentElement;
+        const saved = localStorage.getItem('report-theme');
+        if (saved) root.setAttribute('data-theme', saved);
+        const btn = document.getElementById('theme-toggle');
+        btn.addEventListener('click', function () {
+          const isDark =
+            root.getAttribute('data-theme') === 'dark' ||
+            (!root.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+          const next = isDark ? 'light' : 'dark';
+          root.setAttribute('data-theme', next);
+          localStorage.setItem('report-theme', next);
+        });
+      })();
+
+      // Animate the score ring on load.
+      requestAnimationFrame(function () {
+        document.querySelectorAll('.ring circle[data-dash]').forEach(function (c) {
+          c.style.strokeDashoffset = c.getAttribute('data-dash');
+        });
+      });
+    </script>
+  </body>
+</html>

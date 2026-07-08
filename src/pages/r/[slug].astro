@@ -1,0 +1,17 @@
+---
+import ReportLayout from '../../layouts/ReportLayout.astro';
+
+// One static page per report file in src/data/reports/*.json, served at /r/<slug>.
+// Add a report by dropping a new JSON in that folder and rebuilding. No database.
+export function getStaticPaths() {
+  const files = import.meta.glob('../../data/reports/*.json', { eager: true });
+  return Object.entries(files).map(([path, mod]) => {
+    const slug = path.split('/').pop().replace('.json', '');
+    return { params: { slug }, props: { report: mod.default } };
+  });
+}
+
+const { report } = Astro.props;
+---
+
+<ReportLayout report={report} />
