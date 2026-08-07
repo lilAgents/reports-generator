@@ -5,5 +5,4 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   site: 'https://reports.example.com',
   trailingSlash: 'ignore',
-  server: { port: 4338 },
 });

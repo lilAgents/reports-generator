@@ -10,7 +10,7 @@
   },
   "packageManager": "pnpm@11.20.0",
   "scripts": {
-    "dev": "astro dev --force",
+    "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"
